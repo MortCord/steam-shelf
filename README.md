@@ -1,1 +1,3 @@
-# steam-shelf
+WIP
+
+Basically its a launcher for a launcher. Just developing this project to improve my skills in building apps and for personal use. Since its wip so expect more updates and possibly the final release in the future(i hope). For now the app displays your installed games from your library as a disks/cards (call how you want) placed on a shelf. Left click to take disk from a shelf and double click to launch the game. An internet connection is required to load thumbnails otherwise it will display a steam placeholder instead. Some games and apps may use the placeholder because their thumbnail is not available through steam api (idk why T_T). Developed using java 21. All other dependencies can be found in pom.xml
