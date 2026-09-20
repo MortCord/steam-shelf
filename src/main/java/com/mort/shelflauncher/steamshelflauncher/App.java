@@ -51,8 +51,8 @@ public class App extends Application {
         addElementsToBox(libraryBox, gamesLabel);
 
         try {
-            SubScene subScene = new GameShelf(gameRepository.getGames(), steamStoreService, launcherService).createScene();
-            addElementsToBox(libraryBox, subScene);
+            VBox shelfView = new GameShelf(gameRepository.getGames(), steamStoreService, launcherService, 50).createView();
+            addElementsToBox(libraryBox, shelfView);
         } catch (SteamPathNotFoundException | LibraryPathsNotFoundException | IOException | InterruptedException e) {
             Alert alert = new Alert(Alert.AlertType.ERROR);
 
@@ -67,11 +67,8 @@ public class App extends Application {
         libraryBox.setSpacing(20);
         libraryBox.setAlignment(Pos.CENTER);
 
-
-
-
         stage.setTitle("Steam Shelf");
-        Scene scene = new Scene(vBox, 800, 600);
+        Scene scene = new Scene(vBox, 1280, 720);
 
         button.setOnAction(event -> scene.setRoot(libraryBox));
         backButton.setOnAction(event -> scene.setRoot(vBox));

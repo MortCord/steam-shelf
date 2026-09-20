@@ -7,7 +7,6 @@ import javafx.animation.TranslateTransition;
 import javafx.application.Platform;
 import javafx.scene.Group;
 import javafx.scene.image.Image;
-import javafx.scene.paint.Color;
 import javafx.scene.paint.ImagePattern;
 import javafx.scene.paint.PhongMaterial;
 import javafx.scene.shape.Box;
@@ -18,7 +17,6 @@ import java.io.IOException;
 import java.util.Arrays;
 import java.util.Objects;
 import java.util.Optional;
-import java.util.Random;
 import java.util.concurrent.CompletableFuture;
 
 public class GameCase extends Group {
@@ -37,19 +35,6 @@ public class GameCase extends Group {
         this.selectedZ = selectedZ;
 
         init(x);
-
-
-
-    }
-
-    private Color getRandomColor(){
-
-        Random random = new Random();
-
-        Color[] colors = {Color.WHITE, Color.GOLD, Color.VIOLET, Color.DARKBLUE, Color.FIREBRICK};
-
-        return colors[random.nextInt(0, colors.length)];
-
     }
 
     private void init(int x){
@@ -65,7 +50,12 @@ public class GameCase extends Group {
         setTranslateZ(normalZ);
         Image defaultImage = new Image(Objects.requireNonNull(getClass().getResource("/images/Untitled.png")).toExternalForm());
         ImagePattern pattern = new ImagePattern(defaultImage);
-        box.setMaterial(new PhongMaterial(getRandomColor()));
+
+        Image boxImage = new Image(Objects.requireNonNull(getClass().getResource("/images/boxTexture.jpg")).toExternalForm());
+        PhongMaterial phongMaterial = new PhongMaterial();
+        box.setMaterial(phongMaterial);
+        phongMaterial.setDiffuseMap(boxImage);
+
         cover.setFill(pattern);
 
         getChildren().add(cover);
@@ -133,6 +123,12 @@ public class GameCase extends Group {
             translateTransition.play();
 
         });
+
+    }
+
+    public Game getGame(){
+
+        return game;
 
     }
 }
