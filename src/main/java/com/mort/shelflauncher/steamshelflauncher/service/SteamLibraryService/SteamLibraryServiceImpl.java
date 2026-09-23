@@ -1,6 +1,7 @@
-package com.mort.shelflauncher.steamshelflauncher.service;
+package com.mort.shelflauncher.steamshelflauncher.service.SteamLibraryService;
 
 import com.mort.shelflauncher.steamshelflauncher.model.Game;
+import com.mort.shelflauncher.steamshelflauncher.service.SteamStoreService.SteamStoreService;
 import java.io.BufferedReader;
 import java.io.IOException;
 import java.io.InputStreamReader;
@@ -11,11 +12,11 @@ import java.util.Optional;
 import java.util.concurrent.CompletableFuture;
 import java.util.stream.Stream;
 
-public class SteamLibraryService {
+public class SteamLibraryServiceImpl implements SteamLibraryService {
 
     private final SteamStoreService storeService;
 
-    public SteamLibraryService(SteamStoreService storeService){
+    public SteamLibraryServiceImpl(SteamStoreService storeService){
 
         this.storeService = storeService;
 
@@ -68,20 +69,6 @@ public class SteamLibraryService {
         }
 
         return Optional.empty();
-
-    }
-
-    // No longer used
-    @Deprecated
-    public void printLibraryFolders(Path libraryFolders) throws IOException {
-
-        List<String> strings = Files.readAllLines(libraryFolders);
-
-        for(String s : strings){
-
-            System.out.println(s);
-
-        }
 
     }
 
@@ -144,19 +131,6 @@ public class SteamLibraryService {
 
         return manifestPaths;
     }
-
-    // No longer used
-    @Deprecated
-    public void printManifest(Path manifest) throws IOException {
-
-        List<String> strings = Files.readAllLines(manifest);
-
-        for(String s : strings){
-            System.out.println(s);
-        }
-
-    }
-
 
     private Optional<Game> createGameOf(Path manifest) throws IOException {
 

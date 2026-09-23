@@ -1,4 +1,4 @@
-package com.mort.shelflauncher.steamshelflauncher.service;
+package com.mort.shelflauncher.steamshelflauncher.service.SteamStoreService;
 
 import com.fasterxml.jackson.databind.JsonNode;
 import com.fasterxml.jackson.databind.ObjectMapper;
@@ -9,9 +9,9 @@ import java.net.http.HttpRequest;
 import java.net.http.HttpResponse;
 import java.util.Optional;
 
-public class SteamStoreService {
+public class SteamStoreServiceImpl implements SteamStoreService {
 
-    public String fetchGameData(long gameId) throws IOException, InterruptedException {
+    private String fetchGameData(long gameId) throws IOException, InterruptedException {
 
         HttpClient httpClient = HttpClient.newHttpClient();
 

@@ -1,0 +1,44 @@
+.root{
+    -fx-background-color: #171a21;
+    -fx-font-family: sans-serif;
+}
+
+.app-title{
+    -fx-font-size: 18px;
+    -fx-font-weight: bold;
+    -fx-text-fill: #c7d5e0;
+}
+
+.library-title{
+    -fx-font-size: 18px;
+    -fx-font-weight: bold;
+    -fx-text-fill: #c7d5e0;
+}
+
+.game-title{
+    -fx-font-size: 18px;
+    -fx-font-weight: bold;
+    -fx-text-fill: #c7d5e0;
+}
+
+.publisher{
+    -fx-font-size: 18px;
+    -fx-font-weight: bold;
+    -fx-text-fill: #c7d5e0;
+}
+
+.controls{
+    -fx-font-size: 16px;
+    -fx-text-fill: #66c0f4;
+}
+
+.main-button, .back-button{
+    -fx-background-radius: 10px;
+    -fx-background-color: #c7d5e0;
+    -fx-opacity: 0.5;
+}
+
+.main-button:hover, .back-button:hover{
+    -fx-opacity: 1;
+    -fx-background-color: #66c0f4;
+}

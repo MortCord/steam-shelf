@@ -1,10 +1,9 @@
 package com.mort.shelflauncher.steamshelflauncher.repository;
 
 import com.mort.shelflauncher.steamshelflauncher.model.Game;
-import com.mort.shelflauncher.steamshelflauncher.service.SteamLibraryService;
+import com.mort.shelflauncher.steamshelflauncher.service.SteamLibraryService.SteamLibraryService;
 import com.mort.shelflauncher.steamshelflauncher.service.exception.LibraryPathsNotFoundException;
 import com.mort.shelflauncher.steamshelflauncher.service.exception.SteamPathNotFoundException;
-
 import java.io.IOException;
 import java.nio.file.Path;
 import java.util.ArrayList;
@@ -41,11 +40,9 @@ public class GameRepository {
     }
 
     public List<Game> getGames() throws SteamPathNotFoundException, IOException, LibraryPathsNotFoundException, InterruptedException {
-        if(games == null){
 
-            init();
+        init();
 
-        }
         return new ArrayList<>(games);
     }
 }

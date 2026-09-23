@@ -1,7 +1,7 @@
 package com.mort.shelflauncher.steamshelflauncher.ui;
 
 import com.mort.shelflauncher.steamshelflauncher.model.Game;
-import com.mort.shelflauncher.steamshelflauncher.service.SteamStoreService;
+import com.mort.shelflauncher.steamshelflauncher.service.SteamStoreService.SteamStoreService;
 import javafx.animation.RotateTransition;
 import javafx.animation.TranslateTransition;
 import javafx.application.Platform;

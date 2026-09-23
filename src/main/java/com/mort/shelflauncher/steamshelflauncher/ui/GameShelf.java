@@ -1,8 +1,8 @@
 package com.mort.shelflauncher.steamshelflauncher.ui;
 
 import com.mort.shelflauncher.steamshelflauncher.model.Game;
-import com.mort.shelflauncher.steamshelflauncher.service.LauncherService;
-import com.mort.shelflauncher.steamshelflauncher.service.SteamStoreService;
+import com.mort.shelflauncher.steamshelflauncher.service.LauncherService.LauncherService;
+import com.mort.shelflauncher.steamshelflauncher.service.SteamStoreService.SteamStoreService;
 import javafx.animation.Animation;
 import javafx.animation.TranslateTransition;
 import javafx.geometry.Pos;
@@ -15,6 +15,7 @@ import javafx.scene.paint.Color;
 import javafx.scene.paint.PhongMaterial;
 import javafx.scene.shape.Box;
 import javafx.util.Duration;
+import java.io.IOException;
 import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.List;
@@ -30,8 +31,12 @@ public class GameShelf {
     private final List<GameCase> gameCases;
     private int selectedIndex;
     private final Label gameTitleLabel;
+    private final Label publisherLabel;
+    private final Label controlsLabel;
 
-    public GameShelf(List<Game> games, SteamStoreService steamStoreService, LauncherService launcherService, int spacingX) {
+    private static GameShelf instance;
+
+    private GameShelf(List<Game> games, SteamStoreService steamStoreService, LauncherService launcherService, int spacingX) {
 
         this.games = new ArrayList<>(games);
         this.steamStoreService = steamStoreService;
@@ -45,6 +50,13 @@ public class GameShelf {
         this.selectedIndex = -1;
 
         this.gameTitleLabel = new Label();
+        gameTitleLabel.getStyleClass().add("game-title");
+
+        this.publisherLabel = new Label();
+        publisherLabel.getStyleClass().add("publisher");
+
+        this.controlsLabel = new Label("← → or A/D to browse || ENTER or double click to play");
+        controlsLabel.getStyleClass().add("controls");
 
 
 
@@ -73,19 +85,19 @@ public class GameShelf {
                     selectedCase.set(gameCase);
                     selectedIndex = gameCases.indexOf(gameCase);
                     moveToGamePosition(translateTransition);
-                    updateGameTitleLabel(gameCase.getGame());
+                    updateGameInfoUI(gameCase.getGame());
                 } else if(selectedCase.get() == gameCase){
                     gameCase.deselect();
                     selectedCase.set(null);
                     selectedIndex = -1;
-                    gameTitleLabel.setText("");
+                    clearGameInfoUI();
                 }else{
                     selectedCase.get().deselect();
                     gameCase.select();
                     selectedCase.set(gameCase);
                     selectedIndex = gameCases.indexOf(gameCase);
                     moveToGamePosition(translateTransition);
-                    updateGameTitleLabel(gameCase.getGame());
+                    updateGameInfoUI(gameCase.getGame());
                 }
 
             });
@@ -111,10 +123,15 @@ public class GameShelf {
     public VBox createView(){
 
         VBox vBox = new VBox();
+        vBox.getStyleClass().add("shelf-view");
+
         vBox.getChildren().add(createScene());
-        vBox.getChildren().add(gameTitleLabel);
         vBox.setAlignment(Pos.CENTER);
         vBox.setSpacing(10);
+
+        vBox.getChildren().add(gameTitleLabel);
+        vBox.getChildren().add(publisherLabel);
+        vBox.getChildren().add(controlsLabel);
 
         return vBox;
     }
@@ -181,13 +198,17 @@ public class GameShelf {
             List<KeyCode> keyCodes = new ArrayList<>(Arrays.asList(KeyCode.A, KeyCode.D, KeyCode.LEFT, KeyCode.RIGHT, KeyCode.ENTER));
 
             if(keyCodes.contains(keyCode)){
-                handleKeyPressed(keyCode, translateTransition);
+                try {
+                    handleKeyPressed(keyCode, translateTransition);
+                } catch (IOException ignored) {
+
+                }
             }
         }));
 
     }
 
-    private void handleKeyPressed(KeyCode keyCode, TranslateTransition translateTransition){
+    private void handleKeyPressed(KeyCode keyCode, TranslateTransition translateTransition) throws IOException {
 
         if(translateTransition.getStatus() == Animation.Status.RUNNING || gameCases.isEmpty()){
             return;
@@ -197,12 +218,7 @@ public class GameShelf {
             case KeyCode.LEFT, KeyCode.A:
 
                 if(selectedIndex - 1 < 0){
-                    selectedIndex = 0;
-                    if(selectedCase.get() == null){
-                        selectGameCase(gameCases.get(selectedIndex));
-                        moveToGamePosition(translateTransition);
-                    }
-                    return;
+                    selectedIndex = gameCases.size() - 1;
                 }else{
                     selectedIndex -= 1;
                 }
@@ -242,7 +258,7 @@ public class GameShelf {
         }
         selectedCase.set(gameCase);
         selectedCase.get().select();
-        updateGameTitleLabel(selectedCase.get().getGame());
+        updateGameInfoUI(selectedCase.get().getGame());
 
     }
 
@@ -254,12 +270,32 @@ public class GameShelf {
 
     }
 
-    private void updateGameTitleLabel(Game game){
+    private void updateGameInfoUI(Game game){
+        gameTitleLabel.setText("Selected game: " + game.getTitle());
 
-        String stringBuilder = "Selected game: " + game.getTitle() + "\n" + "Publisher: " + Arrays.toString(game.getPublishers()) +
-                "\n" + "Press ENTER to play";
+        String[] publishers = game.getPublishers();
+        if(publishers == null || publishers.length == 0){
+            publisherLabel.setText("Publisher: unknown");
+        }else{
+            publisherLabel.setText("Publisher: " + String.join(", ", publishers));
+        }
 
-        gameTitleLabel.setText(stringBuilder);
+    }
+
+    private void clearGameInfoUI(){
+
+        gameTitleLabel.setText("");
+        publisherLabel.setText("");
+
+    }
+
+    public static GameShelf getInstance(List<Game> games, SteamStoreService steamStoreService, LauncherService launcherService, int spacingX){
+
+        if(instance == null){
+            instance = new GameShelf(games, steamStoreService, launcherService, spacingX);
+        }
+
+        return instance;
 
     }
 
