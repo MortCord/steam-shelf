@@ -7,5 +7,6 @@ public interface SteamStoreService {
 
     Optional<String> fetchHeaderImageUrl(long gameId) throws IOException, InterruptedException;
     String[] fetchGamePublisher(long gameId) throws IOException, InterruptedException;
+    Optional<String> fetchLibraryCoverUrl(long gameId);
 
 }

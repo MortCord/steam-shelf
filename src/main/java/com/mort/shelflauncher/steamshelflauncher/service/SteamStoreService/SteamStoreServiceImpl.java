@@ -27,6 +27,8 @@ public class SteamStoreServiceImpl implements SteamStoreService {
 
     }
 
+
+    // not used for now
     public Optional<String> fetchHeaderImageUrl(long gameId) throws IOException, InterruptedException {
 
         String response = fetchGameData(gameId);
@@ -69,6 +71,15 @@ public class SteamStoreServiceImpl implements SteamStoreService {
 
 
 
+
+    }
+
+    @Override
+    public Optional<String> fetchLibraryCoverUrl(long gameId) {
+
+        String url = "https://shared.fastly.steamstatic.com/store_item_assets/steam/apps/" + gameId + "/library_600x900.jpg";
+
+        return Optional.of(url);
 
     }
 

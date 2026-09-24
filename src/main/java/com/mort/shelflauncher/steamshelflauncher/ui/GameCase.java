@@ -2,7 +2,9 @@ package com.mort.shelflauncher.steamshelflauncher.ui;
 
 import com.mort.shelflauncher.steamshelflauncher.model.Game;
 import com.mort.shelflauncher.steamshelflauncher.service.SteamStoreService.SteamStoreService;
+import javafx.animation.Animation;
 import javafx.animation.RotateTransition;
+import javafx.animation.SequentialTransition;
 import javafx.animation.TranslateTransition;
 import javafx.application.Platform;
 import javafx.scene.Group;
@@ -13,8 +15,10 @@ import javafx.scene.shape.Box;
 import javafx.scene.shape.Rectangle;
 import javafx.scene.transform.Rotate;
 import javafx.util.Duration;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
+
 import java.io.IOException;
-import java.util.Arrays;
 import java.util.Objects;
 import java.util.Optional;
 import java.util.concurrent.CompletableFuture;
@@ -26,6 +30,9 @@ public class GameCase extends Group {
     private final double normalZ;
     private final double selectedZ;
     private Rectangle cover;
+    private Animation currentAnimation;
+
+    private final static Logger logger = LoggerFactory.getLogger(GameCase.class);
 
     public GameCase(Game game, SteamStoreService steamStoreService, double normalZ, double selectedZ, int x){
 
@@ -70,20 +77,16 @@ public class GameCase extends Group {
     private void fetchHeaderImage(){
 
         CompletableFuture.runAsync(() -> {
-
-
-            Optional<String> imageString = Optional.empty();
-            try {
-                imageString = steamStoreService.fetchHeaderImageUrl(game.getSteamAppId());
-            } catch (IOException | InterruptedException ignored) {
-
-            }
+            Optional<String> imageString = steamStoreService.fetchLibraryCoverUrl(game.getSteamAppId());
 
             if(imageString.isPresent()){
-                    Image image = new Image(imageString.get());
-                    ImagePattern fetchedPattern = new ImagePattern(image);
-                    Platform.runLater(() -> cover.setFill(fetchedPattern));
+                Image image = new Image(imageString.get());
+                if(image.isError()){
+                    return;
                 }
+                ImagePattern fetchedPattern = new ImagePattern(image);
+                Platform.runLater(() -> cover.setFill(fetchedPattern));
+            }
 
 
         });
@@ -92,37 +95,43 @@ public class GameCase extends Group {
 
     public void select() {
 
+        if(currentAnimation != null){
+            currentAnimation.stop();
+        }
+
         TranslateTransition translateTransition = new TranslateTransition(Duration.millis(300), this);
+        translateTransition.setFromZ(getTranslateZ());
         translateTransition.setToZ(selectedZ);
-        translateTransition.play();
 
-        translateTransition.setOnFinished(event -> {
+        RotateTransition rotateTransition = new RotateTransition(Duration.millis(300), this);
+        rotateTransition.setAxis(Rotate.Y_AXIS);
+        rotateTransition.setFromAngle(getRotate());
+        rotateTransition.setToAngle(-90);
 
-            RotateTransition rotateTransition = new RotateTransition(Duration.millis(300), this);
-            rotateTransition.setAxis(Rotate.Y_AXIS);
-            rotateTransition.setToAngle(-90);
-            rotateTransition.play();
-            System.out.println("Selected game " + game.getTitle() + ", publisher(s): " + Arrays.toString(game.getPublishers()));
-        });
+        currentAnimation = new SequentialTransition(translateTransition, rotateTransition);
+        currentAnimation.play();
 
 
     }
 
     public void deselect(){
 
+        if(currentAnimation != null){
+            currentAnimation.stop();
+        }
 
         RotateTransition rotateTransition = new RotateTransition(Duration.millis(300), this);
         rotateTransition.setAxis(Rotate.Y_AXIS);
+        rotateTransition.setFromAngle(getRotate());
         rotateTransition.setToAngle(0);
-        rotateTransition.play();
 
-        rotateTransition.setOnFinished(event -> {
+        TranslateTransition translateTransition = new TranslateTransition(Duration.millis(300), this);
+        translateTransition.setToZ(normalZ);
+        translateTransition.setFromZ(getTranslateZ());
 
-            TranslateTransition translateTransition = new TranslateTransition(Duration.millis(300), this);
-            translateTransition.setToZ(normalZ);
-            translateTransition.play();
+        currentAnimation = new SequentialTransition(rotateTransition, translateTransition);
+        currentAnimation.play();
 
-        });
 
     }
 

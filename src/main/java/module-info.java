@@ -4,6 +4,7 @@ module com.mort.shelflauncher.steamshelflauncher {
     requires java.rmi;
     requires java.net.http;
     requires com.fasterxml.jackson.databind;
+    requires org.slf4j;
 
 
     opens com.mort.shelflauncher.steamshelflauncher to javafx.fxml;

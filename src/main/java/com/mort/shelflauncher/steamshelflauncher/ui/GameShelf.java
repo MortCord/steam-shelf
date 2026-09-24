@@ -7,6 +7,7 @@ import javafx.animation.Animation;
 import javafx.animation.TranslateTransition;
 import javafx.geometry.Pos;
 import javafx.scene.*;
+import javafx.scene.control.Alert;
 import javafx.scene.control.Label;
 import javafx.scene.image.Image;
 import javafx.scene.input.KeyCode;
@@ -74,31 +75,18 @@ public class GameShelf {
                 }
 
                 if(event.getClickCount() == 2){
-                    launcherService.launch(game);
+                    launchGame(game);
                     return;
                 }
 
-                if(selectedCase.get() == null){
-
-                    gameCase.select();
-
-                    selectedCase.set(gameCase);
-                    selectedIndex = gameCases.indexOf(gameCase);
-                    moveToGamePosition(translateTransition);
-                    updateGameInfoUI(gameCase.getGame());
-                } else if(selectedCase.get() == gameCase){
-                    gameCase.deselect();
-                    selectedCase.set(null);
+                if(selectedCase.get() == gameCase){
                     selectedIndex = -1;
-                    clearGameInfoUI();
-                }else{
-                    selectedCase.get().deselect();
-                    gameCase.select();
-                    selectedCase.set(gameCase);
-                    selectedIndex = gameCases.indexOf(gameCase);
-                    moveToGamePosition(translateTransition);
-                    updateGameInfoUI(gameCase.getGame());
+                    deselectGameCase(gameCase);
+                    return;
                 }
+
+                selectedIndex = gameCases.indexOf(gameCase);
+                selectGameCase(gameCase, translateTransition);
 
             });
 
@@ -198,17 +186,13 @@ public class GameShelf {
             List<KeyCode> keyCodes = new ArrayList<>(Arrays.asList(KeyCode.A, KeyCode.D, KeyCode.LEFT, KeyCode.RIGHT, KeyCode.ENTER));
 
             if(keyCodes.contains(keyCode)){
-                try {
-                    handleKeyPressed(keyCode, translateTransition);
-                } catch (IOException ignored) {
-
-                }
+                handleKeyPressed(keyCode, translateTransition);
             }
         }));
 
     }
 
-    private void handleKeyPressed(KeyCode keyCode, TranslateTransition translateTransition) throws IOException {
+    private void handleKeyPressed(KeyCode keyCode, TranslateTransition translateTransition) {
 
         if(translateTransition.getStatus() == Animation.Status.RUNNING || gameCases.isEmpty()){
             return;
@@ -223,9 +207,7 @@ public class GameShelf {
                     selectedIndex -= 1;
                 }
 
-                selectGameCase(gameCases.get(selectedIndex));
-                moveToGamePosition(translateTransition);
-
+                selectGameCase(gameCases.get(selectedIndex), translateTransition);
                 break;
             case KeyCode.RIGHT, KeyCode.D:
 
@@ -235,14 +217,12 @@ public class GameShelf {
                     selectedIndex += 1;
                 }
 
-                selectGameCase(gameCases.get(selectedIndex));
-                moveToGamePosition(translateTransition);
-
+                selectGameCase(gameCases.get(selectedIndex), translateTransition);
                 break;
 
             case KeyCode.ENTER:
                 if(selectedCase.get() != null){
-                    launcherService.launch(selectedCase.get().getGame());
+                    launchGame(selectedCase.get().getGame());
                 }
                 break;
 
@@ -251,15 +231,21 @@ public class GameShelf {
 
     }
 
-    private void selectGameCase(GameCase gameCase){
-
+    private void selectGameCase(GameCase gameCase, TranslateTransition translateTransition){
         if(selectedCase.get() != null){
-            selectedCase.get().deselect();
+            deselectGameCase(selectedCase.get());
         }
         selectedCase.set(gameCase);
         selectedCase.get().select();
         updateGameInfoUI(selectedCase.get().getGame());
+        moveToGamePosition(translateTransition);
 
+    }
+
+    private void deselectGameCase(GameCase gameCase){
+        gameCase.deselect();
+        selectedCase.set(null);
+        clearGameInfoUI();
     }
 
     private void moveToGamePosition(TranslateTransition translateTransition){
@@ -296,6 +282,20 @@ public class GameShelf {
         }
 
         return instance;
+
+    }
+
+    private void launchGame(Game game){
+
+        try {
+            launcherService.launch(game);
+        }catch (IOException e){
+            Alert alert = new Alert(Alert.AlertType.ERROR);
+            alert.setTitle("Could not launch the game");
+            alert.setHeaderText(game.getTitle() + " could not be launched through Steam");
+            alert.setContentText(e.getMessage());
+            alert.showAndWait();
+        }
 
     }
 
