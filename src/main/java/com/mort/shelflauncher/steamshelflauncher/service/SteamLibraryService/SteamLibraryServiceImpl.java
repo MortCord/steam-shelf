@@ -2,6 +2,9 @@ package com.mort.shelflauncher.steamshelflauncher.service.SteamLibraryService;
 
 import com.mort.shelflauncher.steamshelflauncher.model.Game;
 import com.mort.shelflauncher.steamshelflauncher.service.SteamStoreService.SteamStoreService;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
+
 import java.io.BufferedReader;
 import java.io.IOException;
 import java.io.InputStreamReader;
@@ -15,6 +18,8 @@ import java.util.stream.Stream;
 public class SteamLibraryServiceImpl implements SteamLibraryService {
 
     private final SteamStoreService storeService;
+
+    private static final Logger logger = LoggerFactory.getLogger(SteamLibraryServiceImpl.class);
 
     public SteamLibraryServiceImpl(SteamStoreService storeService){
 
@@ -38,7 +43,7 @@ public class SteamLibraryServiceImpl implements SteamLibraryService {
 
         while ((line = reader.readLine()) != null){
             if(line.contains(target)){
-                System.out.println(line);
+                logger.debug("Steam registry value: {}", line);
 
                 int index = line.indexOf("REG_SZ");
                 line = line.substring(index + "REG_SZ".length()).trim();
@@ -87,7 +92,7 @@ public class SteamLibraryServiceImpl implements SteamLibraryService {
                 s = s.replace("\"", "");
                 Path path = Path.of(s);
                 if(Files.isDirectory(path)){
-                    System.out.println(path);
+                    logger.debug("Steam path: {}", path);
                     paths.add(path);
                 }
 
@@ -126,8 +131,6 @@ public class SteamLibraryServiceImpl implements SteamLibraryService {
             }
 
         }
-
-        System.out.println(manifestPaths);
 
         return manifestPaths;
     }
@@ -202,7 +205,7 @@ public class SteamLibraryServiceImpl implements SteamLibraryService {
             Optional<Game> game = createGameOf(path);
 
             if(game.isPresent()){
-                System.out.println(game.get());
+                logger.debug("Game created: {}", game);
                 games.add(game.get());
             }
 

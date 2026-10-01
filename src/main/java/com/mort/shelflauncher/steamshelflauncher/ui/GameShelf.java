@@ -11,6 +11,7 @@ import javafx.scene.control.Alert;
 import javafx.scene.control.Label;
 import javafx.scene.image.Image;
 import javafx.scene.input.KeyCode;
+import javafx.scene.layout.Priority;
 import javafx.scene.layout.VBox;
 import javafx.scene.paint.Color;
 import javafx.scene.paint.PhongMaterial;
@@ -18,24 +19,34 @@ import javafx.scene.shape.Box;
 import javafx.util.Duration;
 import java.io.IOException;
 import java.util.ArrayList;
-import java.util.Arrays;
 import java.util.List;
 import java.util.Objects;
-import java.util.concurrent.atomic.AtomicReference;
 
 public class GameShelf {
     private final List<Game> games;
     private final SteamStoreService steamStoreService;
     private final LauncherService launcherService;
-    private final AtomicReference<GameCase> selectedCase;
+    private GameCase selectedCase;
     private final int spacingX;
     private final List<GameCase> gameCases;
     private int selectedIndex;
     private final Label gameTitleLabel;
     private final Label publisherLabel;
     private final Label controlsLabel;
+    private final Label installedGamesLabel;
+    private final Label selectedGameLabel;
+
 
     private static GameShelf instance;
+
+    private static final List<KeyCode> KEY_CODES = List.of(KeyCode.A, KeyCode.D, KeyCode.LEFT, KeyCode.RIGHT, KeyCode.ENTER, KeyCode.ESCAPE);
+
+    private static final double NORMAL_Z = 500;
+    private static final double SELECTED_Z = 300;
+    private static final double SCENE_WIDTH = 1280;
+    private static final double SCENE_HEIGHT = 500;
+    private static final double SHELF_HEIGHT = 20;
+    private static final double SHELF_DEPTH = 180;
 
     private GameShelf(List<Game> games, SteamStoreService steamStoreService, LauncherService launcherService, int spacingX) {
 
@@ -43,7 +54,7 @@ public class GameShelf {
         this.steamStoreService = steamStoreService;
         this.launcherService = launcherService;
 
-        this.selectedCase = new AtomicReference<>(null);
+        this.selectedCase = null;
 
         this.spacingX = spacingX;
 
@@ -56,17 +67,23 @@ public class GameShelf {
         this.publisherLabel = new Label();
         publisherLabel.getStyleClass().add("publisher");
 
-        this.controlsLabel = new Label("← → or A/D to browse || ENTER or double click to play");
+        this.controlsLabel = new Label("← → or A/D to browse || ENTER or double click to play || ESC to deselect and return to start");
         controlsLabel.getStyleClass().add("controls");
+
+        this.installedGamesLabel = new Label();
+        installedGamesLabel.getStyleClass().add("game-count");
+
+        this.selectedGameLabel = new Label("No game selected");
+        selectedGameLabel.getStyleClass().add("selected-game");
 
 
 
     }
 
-    private GameCase createGameCase(Game game, int x, double normalZ, double selectedZ, TranslateTransition translateTransition){
+    private GameCase createGameCase(Game game, int x, TranslateTransition translateTransition){
 
 
-            GameCase gameCase = new GameCase(game, steamStoreService, normalZ, selectedZ, x);
+            GameCase gameCase = new GameCase(game, steamStoreService, NORMAL_Z, SELECTED_Z, x);
 
             gameCase.setOnMouseClicked(event -> {
 
@@ -79,7 +96,7 @@ public class GameShelf {
                     return;
                 }
 
-                if(selectedCase.get() == gameCase){
+                if(selectedCase == gameCase){
                     selectedIndex = -1;
                     deselectGameCase(gameCase);
                     return;
@@ -96,10 +113,10 @@ public class GameShelf {
 
     }
 
-    private void addGamesToGroup(Group group, int x, double normalZ, double selectedZ, TranslateTransition translateTransition){
+    private void addGamesToGroup(Group group, int x, TranslateTransition translateTransition){
 
         for(Game game : games){
-            GameCase gameCase = createGameCase(game, x, normalZ, selectedZ, translateTransition);
+            GameCase gameCase = createGameCase(game, x, translateTransition);
             group.getChildren().add(gameCase);
             gameCases.add(gameCase);
 
@@ -113,9 +130,18 @@ public class GameShelf {
         VBox vBox = new VBox();
         vBox.getStyleClass().add("shelf-view");
 
-        vBox.getChildren().add(createScene());
         vBox.setAlignment(Pos.CENTER);
         vBox.setSpacing(10);
+
+        installedGamesLabel.setText("Installed games: " + games.size());
+        vBox.getChildren().add(installedGamesLabel);
+        vBox.getChildren().add(selectedGameLabel);
+
+        SubScene subScene = createScene();
+        vBox.getChildren().add(subScene);
+        subScene.widthProperty().bind(vBox.widthProperty());
+        vBox.setMinWidth(800);
+        VBox.setVgrow(subScene, Priority.ALWAYS);
 
         vBox.getChildren().add(gameTitleLabel);
         vBox.getChildren().add(publisherLabel);
@@ -128,13 +154,11 @@ public class GameShelf {
 
         Group root3d = new Group();
         int x = 0;
-        double normalZ = 500;
-        double selectedZ = 300;
 
-        Box shelf = new Box(1280, 20, 180);
+        Box shelf = new Box(SCENE_WIDTH, SHELF_HEIGHT, SHELF_DEPTH);
         shelf.setTranslateX(-50);
         shelf.setTranslateY(120);
-        shelf.setTranslateZ(500);
+        shelf.setTranslateZ(NORMAL_Z);
         PhongMaterial material = new PhongMaterial();
         material.setDiffuseMap(new Image(Objects.requireNonNull(getClass().getResource("/images/shelf.jpg")).toExternalForm()));
         shelf.setMaterial(material);
@@ -145,9 +169,10 @@ public class GameShelf {
         root3d.getChildren().add(shelf);
         root3d.getChildren().add(gamesGroup);
 
-        addGamesToGroup(gamesGroup, x, normalZ, selectedZ, translateTransition);
+        addGamesToGroup(gamesGroup, x, translateTransition);
 
-        SubScene scene = new SubScene(root3d, 1280, 500, true, SceneAntialiasing.BALANCED);
+        SubScene scene = new SubScene(root3d, SCENE_WIDTH, SCENE_HEIGHT, true, SceneAntialiasing.BALANCED);
+        shelf.widthProperty().bind(scene.widthProperty());
 
         PerspectiveCamera perspectiveCamera = new PerspectiveCamera(true);
         perspectiveCamera.setNearClip(0.1);
@@ -183,9 +208,7 @@ public class GameShelf {
         scene.setOnKeyPressed((event -> {
             KeyCode keyCode = event.getCode();
 
-            List<KeyCode> keyCodes = new ArrayList<>(Arrays.asList(KeyCode.A, KeyCode.D, KeyCode.LEFT, KeyCode.RIGHT, KeyCode.ENTER));
-
-            if(keyCodes.contains(keyCode)){
+            if(KEY_CODES.contains(keyCode)){
                 handleKeyPressed(keyCode, translateTransition);
             }
         }));
@@ -221,8 +244,16 @@ public class GameShelf {
                 break;
 
             case KeyCode.ENTER:
-                if(selectedCase.get() != null){
-                    launchGame(selectedCase.get().getGame());
+                if(selectedCase != null){
+                    launchGame(selectedCase.getGame());
+                }
+                break;
+
+            case KeyCode.ESCAPE:
+                if(selectedCase != null){
+                    deselectGameCase(selectedCase);
+                    selectedIndex = -1;
+                    moveToStartPosition(translateTransition);
                 }
                 break;
 
@@ -232,19 +263,19 @@ public class GameShelf {
     }
 
     private void selectGameCase(GameCase gameCase, TranslateTransition translateTransition){
-        if(selectedCase.get() != null){
-            deselectGameCase(selectedCase.get());
+        if(selectedCase != null){
+            deselectGameCase(selectedCase);
         }
-        selectedCase.set(gameCase);
-        selectedCase.get().select();
-        updateGameInfoUI(selectedCase.get().getGame());
+        selectedCase = gameCase;
+        selectedCase.select();
+        updateGameInfoUI(selectedCase.getGame());
         moveToGamePosition(translateTransition);
 
     }
 
     private void deselectGameCase(GameCase gameCase){
         gameCase.deselect();
-        selectedCase.set(null);
+        selectedCase = null;
         clearGameInfoUI();
     }
 
@@ -256,8 +287,16 @@ public class GameShelf {
 
     }
 
+    private void moveToStartPosition(TranslateTransition translateTransition){
+
+        translateTransition.setToX(0);
+        translateTransition.play();
+
+    }
+
     private void updateGameInfoUI(Game game){
         gameTitleLabel.setText("Selected game: " + game.getTitle());
+        selectedGameLabel.setText("Game " + (selectedIndex + 1) + " of " + games.size());
 
         String[] publishers = game.getPublishers();
         if(publishers == null || publishers.length == 0){
@@ -272,6 +311,7 @@ public class GameShelf {
 
         gameTitleLabel.setText("");
         publisherLabel.setText("");
+        selectedGameLabel.setText("No game selected");
 
     }
 

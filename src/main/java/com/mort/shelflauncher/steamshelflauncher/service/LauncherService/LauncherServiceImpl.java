@@ -1,6 +1,8 @@
 package com.mort.shelflauncher.steamshelflauncher.service.LauncherService;
 
 import com.mort.shelflauncher.steamshelflauncher.model.Game;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 
 import java.io.IOException;
 
@@ -9,6 +11,8 @@ public class LauncherServiceImpl implements LauncherService {
 
 
     private static final String GAME_ID_START_URI = "steam://rungameid/";
+
+    private static final Logger logger = LoggerFactory.getLogger(LauncherServiceImpl.class);
 
     public void launch(Game game) throws IOException {
 
@@ -21,7 +25,7 @@ public class LauncherServiceImpl implements LauncherService {
            processBuilder.start();
 
 
-        System.out.println("Launching " + game.getTitle() + " with steam id " + game.getSteamAppId());
+        logger.info("Launching {} with steam id {}", game.getTitle(), game.getSteamAppId());
 
     }
 

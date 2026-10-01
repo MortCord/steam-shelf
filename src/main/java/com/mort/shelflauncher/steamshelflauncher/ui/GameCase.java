@@ -81,15 +81,37 @@ public class GameCase extends Group {
 
             if(imageString.isPresent()){
                 Image image = new Image(imageString.get());
-                if(image.isError()){
+                if(!image.isError()){
+                    ImagePattern fetchedPattern = new ImagePattern(image);
+                    Platform.runLater(() -> cover.setFill(fetchedPattern));
                     return;
                 }
-                ImagePattern fetchedPattern = new ImagePattern(image);
-                Platform.runLater(() -> cover.setFill(fetchedPattern));
+            }
+
+            try {
+                fetchLegacyHeaderImage();
+            } catch (IOException | InterruptedException e) {
+                logger.warn("Exception was thrown while fetching header image for game {}", game);
             }
 
 
         });
+
+    }
+
+    private void fetchLegacyHeaderImage() throws IOException, InterruptedException {
+
+        Optional<String> imageString = steamStoreService.fetchHeaderImageUrl(game.getSteamAppId());
+
+        if(imageString.isPresent()){
+            Image image = new Image(imageString.get());
+            if(!image.isError()){
+                ImagePattern fetchedPattern = new ImagePattern(image);
+                Platform.runLater(() -> cover.setFill(fetchedPattern));
+            }else {
+                logger.warn("Couldn't fetch image for game {}", game);
+            }
+        }
 
     }
 

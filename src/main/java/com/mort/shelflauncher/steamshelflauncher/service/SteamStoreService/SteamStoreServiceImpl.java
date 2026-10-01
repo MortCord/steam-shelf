@@ -20,9 +20,6 @@ public class SteamStoreServiceImpl implements SteamStoreService {
 
         HttpResponse<String> response = httpClient.send(httpRequest, HttpResponse.BodyHandlers.ofString());
 
-//        System.out.println(response.statusCode());
-//        System.out.println(response.body());
-
         return response.body();
 
     }
@@ -62,9 +59,6 @@ public class SteamStoreServiceImpl implements SteamStoreService {
                 gameNode.get("data").isNull() || gameNode.get("data").get("publishers").isNull()){
             return null;
         }
-
-
-        //        System.out.println(Arrays.toString(publishers));
 
         return objectMapper.convertValue(gameNode.get("data").get("publishers"), String[].class);
 
