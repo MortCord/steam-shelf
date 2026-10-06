@@ -56,3 +56,10 @@
     -fx-text-fill: #c7d5e0;
 
 }
+
+.no-games-found{
+
+    -fx-font-size: 20px;
+    -fx-text-fill: #e80723;
+
+}

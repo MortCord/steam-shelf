@@ -35,6 +35,7 @@ public class GameShelf {
     private final Label controlsLabel;
     private final Label installedGamesLabel;
     private final Label selectedGameLabel;
+    private final Label emptyLibraryLabel;
 
 
     private static GameShelf instance;
@@ -76,6 +77,10 @@ public class GameShelf {
         this.selectedGameLabel = new Label("No game selected");
         selectedGameLabel.getStyleClass().add("selected-game");
 
+        this.emptyLibraryLabel = new Label("No Steam games found");
+        emptyLibraryLabel.getStyleClass().add("no-games-found");
+
+
 
 
     }
@@ -97,13 +102,34 @@ public class GameShelf {
                 }
 
                 if(selectedCase == gameCase){
-                    selectedIndex = -1;
-                    deselectGameCase(gameCase);
+                    resetSelection(translateTransition);
                     return;
                 }
 
                 selectedIndex = gameCases.indexOf(gameCase);
                 selectGameCase(gameCase, translateTransition);
+
+            });
+
+            gameCase.setOnMouseEntered(event -> {
+
+                gameCase.setCursor(Cursor.HAND);
+
+                if(selectedCase != gameCase){
+
+                    gameCase.scaleTo(1.1);
+                }
+
+            });
+
+            gameCase.setOnMouseExited(event -> {
+
+                gameCase.setCursor(Cursor.DEFAULT);
+
+                if(selectedCase != gameCase){
+
+                    gameCase.scaleTo(1);
+                }
 
             });
 
@@ -135,14 +161,22 @@ public class GameShelf {
 
         installedGamesLabel.setText("Installed games: " + games.size());
         vBox.getChildren().add(installedGamesLabel);
-        vBox.getChildren().add(selectedGameLabel);
 
         SubScene subScene = createScene();
-        vBox.getChildren().add(subScene);
         subScene.widthProperty().bind(vBox.widthProperty());
         vBox.setMinWidth(800);
         VBox.setVgrow(subScene, Priority.ALWAYS);
 
+        if(games.isEmpty()){
+            vBox.getChildren().add(emptyLibraryLabel);
+            vBox.getChildren().add(subScene);
+            return vBox;
+        }
+
+        vBox.getChildren().add(selectedGameLabel);
+
+
+        vBox.getChildren().add(subScene);
         vBox.getChildren().add(gameTitleLabel);
         vBox.getChildren().add(publisherLabel);
         vBox.getChildren().add(controlsLabel);
@@ -166,8 +200,9 @@ public class GameShelf {
         Group gamesGroup = new Group();
         TranslateTransition translateTransition = new TranslateTransition(Duration.millis(150), gamesGroup);
 
-        root3d.getChildren().add(shelf);
+
         root3d.getChildren().add(gamesGroup);
+        root3d.getChildren().add(shelf);
 
         addGamesToGroup(gamesGroup, x, translateTransition);
 
@@ -222,27 +257,11 @@ public class GameShelf {
         }
 
         switch (keyCode){
-            case KeyCode.LEFT, KeyCode.A:
+            case KeyCode.LEFT, KeyCode.A, KeyCode.RIGHT, KeyCode.D:
 
-                if(selectedIndex - 1 < 0){
-                    selectedIndex = gameCases.size() - 1;
-                }else{
-                    selectedIndex -= 1;
-                }
+                moveSelection(detectDirection(keyCode), translateTransition);
 
-                selectGameCase(gameCases.get(selectedIndex), translateTransition);
                 break;
-            case KeyCode.RIGHT, KeyCode.D:
-
-                if(selectedIndex + 1 >= gameCases.size()){
-                    selectedIndex = 0;
-                }else{
-                    selectedIndex += 1;
-                }
-
-                selectGameCase(gameCases.get(selectedIndex), translateTransition);
-                break;
-
             case KeyCode.ENTER:
                 if(selectedCase != null){
                     launchGame(selectedCase.getGame());
@@ -251,9 +270,7 @@ public class GameShelf {
 
             case KeyCode.ESCAPE:
                 if(selectedCase != null){
-                    deselectGameCase(selectedCase);
-                    selectedIndex = -1;
-                    moveToStartPosition(translateTransition);
+                    resetSelection(translateTransition);
                 }
                 break;
 
@@ -262,7 +279,36 @@ public class GameShelf {
 
     }
 
+    private SelectedDirection detectDirection(KeyCode keyCode){
+
+        if(keyCode == KeyCode.LEFT || keyCode == KeyCode.A){
+
+            return SelectedDirection.LEFT;
+
+        }
+
+        return SelectedDirection.RIGHT;
+
+    }
+
+    private void resetSelection(TranslateTransition transition){
+
+        deselectGameCase(selectedCase);
+        selectedIndex = -1;
+        moveToStartPosition(transition);
+
+    }
+
+    private void moveSelection(SelectedDirection direction, TranslateTransition transition){
+
+        selectedIndex = moveSelectedIndex(direction);
+
+        selectGameCase(gameCases.get(selectedIndex), transition);
+
+    }
+
     private void selectGameCase(GameCase gameCase, TranslateTransition translateTransition){
+        gameCase.scaleTo(1);
         if(selectedCase != null){
             deselectGameCase(selectedCase);
         }
@@ -336,6 +382,27 @@ public class GameShelf {
             alert.setContentText(e.getMessage());
             alert.showAndWait();
         }
+
+    }
+
+    private enum SelectedDirection{
+
+        LEFT, RIGHT
+
+    }
+
+    private int moveSelectedIndex(SelectedDirection direction){
+        if(selectedIndex == -1 && direction == SelectedDirection.LEFT){
+            return gameCases.size() - 1;
+        }
+
+        if(direction == SelectedDirection.LEFT){
+
+            return Math.floorMod(selectedIndex - 1, gameCases.size());
+
+        }
+
+        return (selectedIndex + 1) % gameCases.size();
 
     }
 

@@ -2,10 +2,7 @@ package com.mort.shelflauncher.steamshelflauncher.ui;
 
 import com.mort.shelflauncher.steamshelflauncher.model.Game;
 import com.mort.shelflauncher.steamshelflauncher.service.SteamStoreService.SteamStoreService;
-import javafx.animation.Animation;
-import javafx.animation.RotateTransition;
-import javafx.animation.SequentialTransition;
-import javafx.animation.TranslateTransition;
+import javafx.animation.*;
 import javafx.application.Platform;
 import javafx.scene.Group;
 import javafx.scene.image.Image;
@@ -31,6 +28,7 @@ public class GameCase extends Group {
     private final double selectedZ;
     private Rectangle cover;
     private Animation currentAnimation;
+    private Animation scaleAnimation;
 
     private final static Logger logger = LoggerFactory.getLogger(GameCase.class);
 
@@ -154,6 +152,25 @@ public class GameCase extends Group {
         currentAnimation = new SequentialTransition(rotateTransition, translateTransition);
         currentAnimation.play();
 
+
+    }
+
+    public void scaleTo(double value){
+
+        if(scaleAnimation != null){
+
+            scaleAnimation.stop();
+
+        }
+
+        ScaleTransition scaleTransition = new ScaleTransition(Duration.millis(150), this);
+
+        scaleTransition.setToX(value);
+        scaleTransition.setToY(value);
+        scaleTransition.setToZ(value);
+        scaleAnimation = scaleTransition;
+
+        scaleAnimation.play();
 
     }
 
